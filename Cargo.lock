@@ -226,7 +226,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "sky_track"
 version = "0.1.0"
-source = "git+https://github.com/Ahagroen/sky_track#3c0af562f9c34a359c3d71bc275d5ac64f7febe6"
+source = "git+https://github.com/Ahagroen/sky_track#b7e5a40bfa0c68623a29560d7f6594d1fa75c437"
 dependencies = [
  "chrono",
  "serde",
