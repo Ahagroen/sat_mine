@@ -1,0 +1,7 @@
+[package]
+name = "sat_mine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sky_track = {git = "https://github.com/Ahagroen/sky_track"}
