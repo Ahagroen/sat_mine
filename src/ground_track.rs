@@ -19,6 +19,9 @@ impl GroundTrack<'_>{
     pub fn get_start_time(&self)->i64{
         self.start_time
     }
+    pub fn get_satellite(&self)->String{
+        self.satellite.get_name()
+    }
 }
 impl Iterator for GroundTrack<'_>{
     type Item = SubPoint;
