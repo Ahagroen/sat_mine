@@ -1,29 +1,12 @@
 use sky_track::{GroundStation, SatAngle, Satellite};
-pub struct UpcomingPasses<'b>{
+pub struct PassList<'b>{
     satellite:&'b Satellite,
     ground_station:&'b GroundStation,
     start_time:i64,
     passes:Vec<SatPass>,
     duration:i64,
 }
-impl UpcomingPasses<'_>{
-    pub fn new<'b>(sat:&'b Satellite,ground_station:&'b GroundStation, start_time:i64,duration:i64)->UpcomingPasses<'b>{
-        let mut passes:Vec<SatPass> = vec![];
-        let mut searching:bool = true;
-        let mut guess_time = start_time;
-        let max_time = start_time + duration;
-        while searching{
-            let next_pass = SatPass::new(sat, ground_station, guess_time,max_time);
-            match next_pass{
-                Some(pass) => {
-                    guess_time = pass.aos_time;
-                    passes.push(pass.clone())
-                },
-                None => searching = false,
-            }
-        }
-        UpcomingPasses { satellite: sat, ground_station, start_time, passes, duration }
-    }
+impl PassList<'_>{
     pub fn update(&mut self,new_start_time:i64,new_duration:i64){
         let mut passes:Vec<SatPass> = vec![];
         let mut searching:bool = true;
@@ -45,6 +28,14 @@ impl UpcomingPasses<'_>{
     }
     pub fn get_pass_list(&self)->Vec<SatPass>{
         self.passes.clone()
+    }
+    pub fn get_next_pass(&self,timestamp:i64)->SatPass{
+        for i in &self.passes{
+            if i.aos_time > timestamp{
+                return i.clone()
+            }
+        }
+        panic!("No upcoming passes match timestamp")
     }
 }
 
@@ -86,11 +77,36 @@ impl SatPass{
             Some(SatPass { aos_time, los_time, max_elevation })
         }
     }
-    pub fn interpolate_pass(&self,sat:&Satellite,gs:&GroundStation,padding_time:i64)->Vec<SatAngle>{//Make the range an argument?
+    pub fn get_look_angles(&self,sat:&Satellite,gs:&GroundStation,padding_time:i64)->Vec<SatAngle>{//Make the range an argument?
         let mut passes: Vec<SatAngle> = vec![];
         for i in self.aos_time-padding_time..self.los_time+padding_time{
             passes.push(sat.get_look_angle(gs, i));
         }
         passes
+    }
+}
+
+
+pub trait SatellitePasses {
+    fn get_passes<'b>(&'b self,ground_station:&'b GroundStation, start_time:i64,duration:i64)->PassList<'b>;
+}
+
+impl SatellitePasses for Satellite{
+    fn get_passes<'b>(&'b self,ground_station:&'b GroundStation, start_time:i64,duration:i64)->PassList<'b> {
+        let mut passes:Vec<SatPass> = vec![];
+        let mut searching:bool = true;
+        let mut guess_time = start_time;
+        let max_time = start_time + duration;
+        while searching{
+            let next_pass = SatPass::new(self, ground_station, guess_time,max_time);
+            match next_pass{
+                Some(pass) => {
+                    guess_time = pass.aos_time;
+                    passes.push(pass.clone())
+                },
+                None => searching = false,
+            }
+        }
+        PassList { satellite: self, ground_station, start_time, passes, duration }
     }
 }
